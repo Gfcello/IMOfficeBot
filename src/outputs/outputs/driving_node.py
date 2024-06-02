@@ -47,8 +47,15 @@ class DrivingNode(Node):
         self.right_throttle = msg.right_throttle
 
         # map throttle (-1 to 1) -> 1-2ms / 20ms -> 0-4095
-        left_value = int(((self.left_throttle + 1) / 20.0) * 4095.0)
-        right_value = int(((self.right_throttle + 1) / 20.0) * 4095.0)
+        # First convert -1 to 1 to between 1 and 2 ms:
+        left_value = (self.left_throttle + 1) / 2
+        right_value = (self.right_throttle + 1) / 2
+        # Next convert ms to duty:
+        left_value /= 20.0
+        right_value /= 20.0
+        # finally convert duty to compare register value
+        left_value = int(left_value * 4095.0)
+        right_value = int(right_value * 4095.0)
         self.chip.set_pwm(self.left_motor_port, left_value)
         self.chip.set_pwm(self.right_motor_port, right_value)
 
