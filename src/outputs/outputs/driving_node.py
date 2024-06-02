@@ -48,8 +48,8 @@ class DrivingNode(Node):
 
         # map throttle (-1 to 1) -> 1-2ms / 20ms -> 0-4095
         # First convert -1 to 1 to between 1 and 2 ms:
-        left_value = (self.left_throttle + 1) / 2
-        right_value = (self.right_throttle + 1) / 2
+        left_value = (self.left_throttle / 2) + 1.5
+        right_value = (self.right_throttle / 2) + 1.5
         # Next convert ms to duty:
         left_value /= 20.0
         right_value /= 20.0
