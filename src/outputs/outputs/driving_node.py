@@ -15,6 +15,8 @@ class DrivingNode(Node):
     # and
     # pip install PCA9685-driver
 
+    RIGHT_OFFSET = -0.03
+    LEFT_OFFSET = 0.02
     FREQ = 50
     def __init__(self):
         super().__init__('driving_node')
@@ -70,8 +72,8 @@ class DrivingNode(Node):
 
         # map throttle (-1 to 1) -> 1-2ms / 20ms -> 0-4095
         # First convert -1 to 1 to between 1 and 2 ms:
-        left_value = (self.left_throttle / 2) + 1.5
-        right_value = (-1 * self.right_throttle / 2) + 1.5 # need to flip right motor dir
+        left_value = ((self.left_throttle + self.LEFT_OFFSET) / 2) + 1.5
+        right_value = ((-1 * self.right_throttle + self.RIGHT_OFFSET) / 2) + 1.5 # need to flip right motor dir
         # Next convert ms to duty:
         left_value /= 20.0
         right_value /= 20.0
