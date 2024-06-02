@@ -5,6 +5,7 @@ import smbus
 from pca9685_driver import Device
 
 from message_types.msg import NodeStatus, DriveCmd
+from std_msgs.msg import Bool
 
 
 class DrivingNode(Node):
@@ -20,6 +21,7 @@ class DrivingNode(Node):
         self.status_publisher = self.create_publisher(NodeStatus, 'driving_node/status', 10)
         # Subscribe to driving commands
         self.create_subscription(DriveCmd, 'controller_node/drive_cmd', self.update_motors, 10)
+        self.create_subscription(Bool, 'mode_node/enable_motors', self.enable_motors, 10)
 
         self.status_msg = NodeStatus()
         self.declare_parameter('i2c_addr', 0x40)
@@ -35,12 +37,30 @@ class DrivingNode(Node):
 
         self.status_msg.status = NodeStatus.STATUS_IDLE
 
+        self.get_logger().info('Driving Node Started')
+
         timer_period = 1.0  # seconds, 1hz status updates
         self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
         # Publish the most recent status
         self.status_publisher.publish(self.status_msg)
+    
+    def sleep_chip(self):
+        self.status_msg.status = NodeStatus.STATUS_IDLE
+        self.get_logger().info('Driving Disabled')
+        self.chip.sleep()
+
+    def wake_chip(self):
+        self.status_msg.status = NodeStatus.STATUS_GOOD
+        self.get_logger().info('Driving Enabled')
+        self.chip.wake()
+    
+    def enable_motors(self, msg):
+        if msg.data:
+            self.wake_chip()
+        else:
+            self.sleep_chip()
 
     def update_motors(self, msg):
         self.left_throttle = msg.left_throttle
