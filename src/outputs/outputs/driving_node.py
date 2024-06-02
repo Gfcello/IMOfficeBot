@@ -66,10 +66,12 @@ class DrivingNode(Node):
         self.left_throttle = msg.left_throttle
         self.right_throttle = msg.right_throttle
 
+        # offset of 0.01 makes it stop for left, 0.05 to stop for right
+
         # map throttle (-1 to 1) -> 1-2ms / 20ms -> 0-4095
         # First convert -1 to 1 to between 1 and 2 ms:
         left_value = (self.left_throttle / 2) + 1.5
-        right_value = (self.right_throttle / 2) + 1.5
+        right_value = (-1 * self.right_throttle / 2) + 1.5 # need to flip right motor dir
         # Next convert ms to duty:
         left_value /= 20.0
         right_value /= 20.0
