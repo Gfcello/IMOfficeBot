@@ -1,0 +1,10 @@
+/controller_node:
+  ros__parameters:
+    KP_LIN: 3200.0
+    KP_ANG: 1.14591509915
+
+/driving_node:
+  ros__parameters:
+    i2c_addr: 0x40
+    left_port_num: 0
+    right_port_num: 3

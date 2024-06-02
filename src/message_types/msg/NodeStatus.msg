@@ -1,0 +1,7 @@
+# Status Levels
+uint8 STATUS_IDLE=0
+uint8 STATUS_GOOD=1
+uint8 STATUS_WARN=2
+uint8 STATUS_ERROR=3
+uint8 STATUS_APOCALYPSE=4
+uint8 status
