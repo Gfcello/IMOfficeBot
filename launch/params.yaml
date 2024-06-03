@@ -1,7 +1,7 @@
 /controller_node:
   ros__parameters:
-    KP_LIN: 3200.0
-    KP_ANG: 1.14591509915
+    HEADING_KP: 0.01111111111
+    TURNING_KP: 0.05
 
 /driving_node:
   ros__parameters:

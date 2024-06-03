@@ -1,0 +1,2 @@
+float64 fwd_throttle
+float64 cw_deg_per_s

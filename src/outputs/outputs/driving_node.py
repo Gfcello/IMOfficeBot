@@ -65,15 +65,25 @@ class DrivingNode(Node):
             self.sleep_chip()
 
     def update_motors(self, msg):
-        self.left_throttle = msg.left_throttle
-        self.right_throttle = msg.right_throttle
+        # offset of 0.01 makes it stop for left, 0.05 to stop for right, but does change
+        self.left_throttle = msg.left_throttle + self.LEFT_OFFSET
+        self.right_throttle = msg.right_throttle + self.RIGHT_OFFSET
 
-        # offset of 0.01 makes it stop for left, 0.05 to stop for right
+        # saturate throttle
+        if self.left_throttle > 1.0:
+            self.left_throttle = 1.0
+        elif self.left_throttle < -1.0:
+            self.left_throttle = -1.0
+        
+        if self.right_throttle > 1.0:
+            self.right_throttle = 1.0
+        elif self.right_throttle < -1.0:
+            self.right_throttle = -1.0
 
         # map throttle (-1 to 1) -> 1-2ms / 20ms -> 0-4095
         # First convert -1 to 1 to between 1 and 2 ms:
-        left_value = ((self.left_throttle + self.LEFT_OFFSET) / 2) + 1.5
-        right_value = ((-1 * self.right_throttle + self.RIGHT_OFFSET) / 2) + 1.5 # need to flip right motor dir
+        left_value = ((self.left_throttle) / 2) + 1.5
+        right_value = ((-1 * self.right_throttle) / 2) + 1.5 # need to flip right motor dir
         # Next convert ms to duty:
         left_value /= 20.0
         right_value /= 20.0

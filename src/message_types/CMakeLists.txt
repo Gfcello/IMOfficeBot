@@ -29,6 +29,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DriveCmd.msg"
   "msg/NodeStatus.msg"
   "msg/SystemStatus.msg"
+  "msg/TeleopCmd.msg"
 )
 
 ament_package()

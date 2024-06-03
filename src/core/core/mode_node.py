@@ -24,6 +24,13 @@ class ModeNode(Node):
                 self.startup_loop()
             case CoreMode.IDLE_MODE:
                 self.idle_loop()
+
+            # Maybe have an option to calibrate the motors. Calibrate each motor to stop at zero
+            # and be able to drive straight. Maybe keep sleeping and starting the motors, measure 
+            # any acceleration to know if it is calibrated
+            # For the max speed one set both motors to max speed and then step down motors until 
+            # it drives straight. Same for in reverse
+
             case CoreMode.GPS_TRACKING_MODE:
                 self.gps_track_loop()
             case CoreMode.SEARCH_PATTERN_MODE:
