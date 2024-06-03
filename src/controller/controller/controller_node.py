@@ -99,7 +99,17 @@ class ControllerNode(Node):
         # If driving straight then try to hold a heading, if turning then hold an angular velocity
 
         if self.target_ang_vel == 0.0:
-            ang_error = self.straight_path_heading - self.cur_heading
+            # handle jump from 0-360:
+            if abs(self.straight_path_heading - self.cur_heading) > 180:
+                if self.straight_path_heading > 180:
+                    # Case where straight heading is large and cur heading is small
+                    ang_error = (self.straight_path_heading - 360) - self.cur_heading
+                else:
+                    # Case where straight heading is small and cur heading is large
+                    ang_error = self.straight_path_heading - (self.cur_heading - 360)
+            else:
+                ang_error = self.straight_path_heading - self.cur_heading
+
             left_throttle = self.target_throttle
             right_throttle = self.target_throttle
             left_throttle += self.HEADING_KP * ang_error

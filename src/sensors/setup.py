@@ -20,8 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-                'bms_node = sensors.bms_node:main',
-                'gps_node = sensors.gps_node:main',
+                'imu_node = sensors.imu_node:main',
              ],
     },
 )
