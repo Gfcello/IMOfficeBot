@@ -4,6 +4,7 @@ from rclpy.node import Node
 from . import IMU
 import datetime
 import math
+import sys
 
 from message_types.msg import NodeStatus, ImuData
 
@@ -83,6 +84,8 @@ class IMUNode(Node):
         self.mag_medianTable2Y = [1] * self.MAG_MEDIANTABLESIZE
         self.mag_medianTable2Z = [1] * self.MAG_MEDIANTABLESIZE
 
+        self.a = datetime.datetime.now()
+
         IMU.detectIMU()     #Detect if BerryIMU is connected.
         if(IMU.BerryIMUversion == 99):
             print(" No BerryIMU found... exiting ")
@@ -112,9 +115,9 @@ class IMUNode(Node):
 
 
         ##Calculate loop Period(LP). How long between Gyro Reads
-        b = datetime.datetime.now() - a
-        a = datetime.datetime.now()
-        LP = b.microseconds/(1000000*1.0) # Loop time
+        self.b = datetime.datetime.now() - self.a
+        self.a = datetime.datetime.now()
+        LP = self.b.microseconds/(1000000*1.0) # Loop time
 
 
         ###############################################
