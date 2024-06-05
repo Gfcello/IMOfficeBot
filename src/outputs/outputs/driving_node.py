@@ -48,12 +48,12 @@ class DrivingNode(Node):
     
     def sleep_chip(self):
         self.status_msg.status = NodeStatus.STATUS_IDLE
-        self.get_logger().info('Driving Disabled')
+        # self.get_logger().info('Driving Disabled')
         self.chip.sleep()
 
     def wake_chip(self):
         self.status_msg.status = NodeStatus.STATUS_GOOD
-        self.get_logger().info('Driving Enabled')
+        # self.get_logger().info('Driving Enabled')
         self.chip.wake()
     
     def enable_motors(self, msg):

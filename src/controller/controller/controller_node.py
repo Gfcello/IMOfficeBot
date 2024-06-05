@@ -127,6 +127,7 @@ class ControllerNode(Node):
         enable_msg.data = True
         disable_msg = Bool()
         disable_msg.data = False
+        self.get_logger().info('Calibrating stop Angle')
         while abs(ang_error) > 3.0: # TODO: is 3 deg good for a tuning tol?
             # first calibrate stopped values by first setting both motors to 0.00
             drive_msg = DriveCmd()
@@ -140,6 +141,7 @@ class ControllerNode(Node):
             # Wait for 3 seconds then see which way it is turning.
             time.sleep(3)
             self.drive_enable_publisher.publish(disable_msg) # Stop the bot
+            self.get_logger().info(f'start_ang: {start_ang}, cur: {self.cur_heading}')
             ang_error = start_ang - self.cur_heading
             # Correct in case angle went from a small positive to ~ 360 or opposite
             if ang_error > 180:
@@ -156,8 +158,9 @@ class ControllerNode(Node):
 
         # Now that the heading is within 3 deg after 3 seconds fix if the bot is still moving
 
+        self.get_logger().info('Calibrating stop magnitude')
         self.calibration_max_accel = 100 # outrageous number to start loop
-        while abs(self.calibration_max_accel) > 0.5: # TODO: test if this is a good tolerance
+        while abs(self.calibration_max_accel) > 0.05: # TODO: test if this is a good tolerance
             # Fully stop the bot (sleep the chip), reset the max acceleration on IMU and 
             self.drive_enable_publisher.publish(disable_msg)
             time.sleep(0.5) # wait half a second for the bot to stop
@@ -170,10 +173,10 @@ class ControllerNode(Node):
 
             # If acceleration is fwd/back then adjust both motors
             # equally. May need to go back to the heading correction step (later TODO)
-            if self.calibration_max_accel > 0.5: # TODO is this good
+            if self.calibration_max_accel > 0.05: # TODO is this good
                 self.LEFT_MOT_STOP -= 0.01
                 self.RIGHT_MOT_STOP -= 0.01
-            elif self.calibration_max_accel < -0.5: # TODO is this good
+            elif self.calibration_max_accel < -0.05: # TODO is this good
                 self.LEFT_MOT_STOP += 0.01
                 self.RIGHT_MOT_STOP += 0.01
 
