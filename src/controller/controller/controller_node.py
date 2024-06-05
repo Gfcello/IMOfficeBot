@@ -319,6 +319,44 @@ class ControllerNode(Node):
             right_throttle -= self.TURNING_KP * ang_vel_error
 
         throttle_msg = DriveCmd()
+
+        # map the throttle to between the zero and max fwd/back
+        # Controller throttle is between -1 and 1, so can just multiply
+        # just in case saturate to this
+        if left_throttle > 1.0:
+            left_throttle = 1.0
+        elif left_throttle < -1.0:
+            left_throttle = -1.0
+        
+        if right_throttle > 1.0:
+            right_throttle = 1.0
+        elif right_throttle < -1.0:
+            right_throttle = -1.0
+        
+        # Scale outputs using calibration values
+        if left_throttle > 0.0:
+            # Find magnitude of positive range, scale throttle, and add offset
+            left_pos_magnitude = self.LEFT_MOT_FWD_MAX - self.LEFT_MOT_STOP
+            left_magnitude = left_pos_magnitude * left_throttle
+            left_throttle = left_magnitude + self.LEFT_MOT_STOP
+        else :
+            # Find magnitude of negative range, scale throttle, and add offset
+            left_neg_magnitude = -1* (self.LEFT_MOT_BACK_MAX - self.LEFT_MOT_STOP) # want positive sign here
+            left_magnitude = left_neg_magnitude * left_throttle # left throttle is - so sign = -
+            left_throttle = left_magnitude + self.LEFT_MOT_STOP
+        
+
+        if right_throttle > 0.0:
+            # Find magnitude of positive range, scale throttle, and add offset
+            right_pos_magnitude = self.RIGHT_MOT_FWD_MAX - self.RIGHT_MOT_STOP
+            right_magnitude = right_pos_magnitude * right_throttle
+            right_throttle = right_magnitude + self.RIGHT_MOT_STOP
+        else :
+            # Find magnitude of negative range, scale throttle, and add offset
+            right_neg_magnitude = -1* (self.RIGHT_MOT_BACK_MAX - self.RIGHT_MOT_STOP) # want positive sign here
+            right_magnitude = right_neg_magnitude * right_throttle # right throttle is - so sign = -
+            right_throttle = right_magnitude + self.RIGHT_MOT_STOP
+
         throttle_msg.left_throttle = left_throttle
         throttle_msg.right_throttle = right_throttle
         self.drive_cmd_publisher.publish(throttle_msg)
