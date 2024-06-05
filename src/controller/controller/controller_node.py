@@ -188,6 +188,7 @@ class ControllerNode(Node):
 
         # Now calibrate max fwd by setting both to max fwd for 2 sec measuring heading difference
         # keep reducing the one side until it goes straight.
+        self.get_logger().info('Calibrating forward magnitude')
         ang_error = 100
         self.LEFT_MOT_FWD_MAX = 1.0
         self.RIGHT_MOT_FWD_MAX = 1.0
@@ -234,9 +235,10 @@ class ControllerNode(Node):
             time.sleep(3)
             self.drive_enable_publisher.publish(disable_msg) # Stop the bot
 
-        self.get_logger(f'Max Fwd calibrated: Right: {self.RIGHT_MOT_FWD_MAX}, Left: {self.LEFT_MOT_FWD_MAX}')
+        self.get_logger().info(f'Max Fwd calibrated: Right: {self.RIGHT_MOT_FWD_MAX}, Left: {self.LEFT_MOT_FWD_MAX}')
 
         # Finally calibrate the same for going backwards
+        self.get_logger().info('Calibrating Backwards magnitude')
         ang_error = 100
         self.LEFT_MOT_BACK_MAX = -1.0
         self.RIGHT_MOT_BACK_MAX = -1.0
@@ -283,7 +285,7 @@ class ControllerNode(Node):
             time.sleep(3)
             self.drive_enable_publisher.publish(disable_msg) # Stop the bot
 
-        self.get_logger(f'Max Back calibrated: Right: {self.RIGHT_MOT_BACK_MAX}, Left: {self.LEFT_MOT_BACK_MAX}')
+        self.get_logger().info(f'Max Back calibrated: Right: {self.RIGHT_MOT_BACK_MAX}, Left: {self.LEFT_MOT_BACK_MAX}')
 
         # Save calibrations to a motor_params.yaml file to be stored for future launches
         motor_calibration_file = open('../../../launch/motor_params.yaml', 'w')
