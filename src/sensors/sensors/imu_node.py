@@ -276,7 +276,7 @@ class IMUNode(Node):
         imu_msg = ImuData()
         imu_msg.heading = tiltCompensatedHeading
         imu_msg.ang_vel = rate_gyr_z
-        imu_msg.x_accel = accXnorm
+        imu_msg.x_accel = ACCx
         self.data_publisher.publish(imu_msg)
 
     def kalmanFilterY (self, accAngle, gyroRate, DT):
