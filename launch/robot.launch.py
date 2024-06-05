@@ -10,14 +10,19 @@ def generate_launch_description():
        'launch',
        'params.yaml'
     )
+    motor_config = os.path.join(
+        '.',
+        'launch',
+        'motor_params.yaml'
+    )
 
     return LaunchDescription([
-      # Node(
-      #    package='controller',
-      #    executable='controller_node',
-      #    name='controller_node',
-      #    parameters=[config]
-      # ),
+      Node(
+         package='controller',
+         executable='controller_node',
+         name='controller_node',
+         parameters=[config, motor_config]
+      ),
       # Node(
       #    package='core',
       #    executable='mode_node',
@@ -36,12 +41,12 @@ def generate_launch_description():
       #    name='recorder_node',
       #    parameters=[config]
       # ),
-      # Node(
-      #    package='sensors',
-      #    executable='radio_node',
-      #    name='radio_node',
-      #    parameters=[config]
-      # ),
+      Node(
+         package='sensors',
+         executable='imu_node',
+         name='imu_node',
+         parameters=[config]
+      ),
       Node(
          package='outputs',
          executable='driving_node',

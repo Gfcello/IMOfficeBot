@@ -15,8 +15,6 @@ class DrivingNode(Node):
     # and
     # pip install PCA9685-driver
 
-    RIGHT_OFFSET = -0.03
-    LEFT_OFFSET = 0.02
     FREQ = 50
     def __init__(self):
         super().__init__('driving_node')
@@ -65,9 +63,8 @@ class DrivingNode(Node):
             self.sleep_chip()
 
     def update_motors(self, msg):
-        # offset of 0.01 makes it stop for left, 0.05 to stop for right, but does change
-        self.left_throttle = msg.left_throttle + self.LEFT_OFFSET
-        self.right_throttle = msg.right_throttle + self.RIGHT_OFFSET
+        self.left_throttle = msg.left_throttle
+        self.right_throttle = msg.right_throttle
 
         # saturate throttle
         if self.left_throttle > 1.0:

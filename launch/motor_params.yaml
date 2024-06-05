@@ -1,0 +1,8 @@
+/controller_node:
+  ros__parameters:
+    LEFT_MOT_STOP: 0.0
+    LEFT_MOT_FWD_MAX: 1.0
+    LEFT_MOT_BACK_MAX: -1.0
+    RIGHT_MOT_STOP: 0.0
+    RIGHT_MOT_FWD_MAX: 1.0
+    RIGHT_MOT_BACK_MAX: -1.0

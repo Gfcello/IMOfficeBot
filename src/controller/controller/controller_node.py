@@ -2,9 +2,9 @@ import rclpy
 from rclpy.node import Node
 
 from message_types.msg import ControllerMode, DriveCmd, ImuData, NodeStatus, TeleopCmd
-from std_msgs.msg import Bool, Float64
+from std_msgs.msg import Bool
 
-from math import atan, cos, pi, sin, sqrt
+import time
 
 
 class ControllerNode(Node):
@@ -16,15 +16,28 @@ class ControllerNode(Node):
 
         # Read PID tuning parameters from configuration file
         self.declare_parameter('HEADING_KP', 1/90)
-        self.HEADING_KP = self.get_parameter(
-                'HEADING_KP').value
+        self.HEADING_KP = self.get_parameter('HEADING_KP').value
 
         self.declare_parameter('TURNING_KP', 0.05)
-        self.TURNING_KP = self.get_parameter(
-                'TURNING_KP').value
+        self.TURNING_KP = self.get_parameter('TURNING_KP').value
+
+        self.declare_parameter('LEFT_MOT_STOP', 0.00)
+        self.LEFT_MOT_STOP = self.get_parameter('LEFT_MOT_STOP').value
+        self.declare_parameter('LEFT_MOT_FWD_MAX', 1.00)
+        self.LEFT_MOT_FWD_MAX = self.get_parameter('LEFT_MOT_FWD_MAX').value
+        self.declare_parameter('LEFT_MOT_BACK_MAX', -1.00)
+        self.LEFT_MOT_BACK_MAX = self.get_parameter('LEFT_MOT_BACK_MAX').value
+
+        self.declare_parameter('RIGHT_MOT_STOP', 0.00)
+        self.RIGHT_MOT_STOP = self.get_parameter('RIGHT_MOT_STOP').value
+        self.declare_parameter('RIGHT_MOT_FWD_MAX', -1.00)
+        self.RIGHT_MOT_FWD_MAX = self.get_parameter('RIGHT_MOT_FWD_MAX').value
+        self.declare_parameter('RIGHT_MOT_BACK_MAX', 1.00)
+        self.RIGHT_MOT_BACK_MAX = self.get_parameter('RIGHT_MOT_BACK_MAX').value
 
         # Publisher for motor throttles.
         self.drive_cmd_publisher = self.create_publisher(DriveCmd, 'controller_node/drive_cmd', 10)
+        self.drive_enable_publisher = self.create_publisher(Bool, 'mode_node/enable_motors', 10)
 
         # Status Publisher
         self.status_publisher = self.create_publisher(NodeStatus, 'controller_node/status', 10)
@@ -58,7 +71,7 @@ class ControllerNode(Node):
         self.status_msg = NodeStatus()
 
         self.timer_period = 0.1  # seconds (10Hz.)
-        self.create_timer(self.timer_period, self.timer_callback)
+        self.loop_timer = self.create_timer(self.timer_period, self.timer_callback)
 
         status_timer_period = 1.0  # seconds (1Hz.)
         self.create_timer(status_timer_period, self.status_timer_callback)
@@ -66,11 +79,14 @@ class ControllerNode(Node):
     def timer_callback(self):
         if self.mode_changed:
             self.mode_changed = False
-            # Reset any filters with memory
+            # Reset any filters or things with memory
+            self.calibration_max_accel = 0.0 # reset max measured acceleration
 
         match self.mode:
             case ControllerMode.TELEOP:
                 self.teleop_loop()
+            case ControllerMode.CALIBRATION:
+                self.calibration_loop()
             case _:
                 # if no mode selected (start of operation or idle) then pass
                 self.status_msg.status = NodeStatus.STATUS_IDLE
@@ -94,8 +110,188 @@ class ControllerNode(Node):
     def imu_data_callback(self, msg):
         self.cur_heading = msg.heading
         self.cur_ang_vel = msg.ang_vel
+        self.x_accel = msg.x_accel
+        if self.mode == ControllerMode.CALIBRATE:
+            self.calibration_max_accel = max(self.calibration_max_accel, self.x_accel)
+    
+    def calibration_loop(self):
+        # pause the control loop timer
+        self.loop_timer.cancel()
+        self.get_logger().info('Beginning Calibration')
+        # Reset zero values
+        self.LEFT_MOT_STOP = 0.0
+        self.RIGHT_MOT_STOP = 0.0
+        ang_error = 100
+        while abs(ang_error) > 3.0: # TODO: is 3 deg good for a tuning tol?
+            # first calibrate stopped values by first setting both motors to 0.00
+            drive_msg = DriveCmd()
+            drive_msg.left_throttle = self.LEFT_MOT_STOP
+            drive_msg.right_throttle = self.RIGHT_MOT_STOP
+            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot for a bit to get the heading
+            time.sleep(0.5)
+            start_ang = self.cur_heading
+            self.drive_enable_publisher.publish(Bool(True))
+            self.drive_cmd_publisher.publish(drive_msg)
+            # Wait for 3 seconds then see which way it is turning.
+            time.sleep(3)
+            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot
+            ang_error = start_ang - self.cur_heading
+            # Correct in case angle went from a small positive to ~ 360 or opposite
+            if ang_error > 180:
+                ang_error -= 360
+            elif ang_error < -180:
+                ang_error += 360
+            # increase and decrease the wheel values until heading is not changing
+            if ang_error > 3.0:
+                self.LEFT_MOT_STOP -= 0.02
+                self.RIGHT_MOT_STOP += 0.02
+            elif ang_error < -3.0:
+                self.LEFT_MOT_STOP += 0.02
+                self.RIGHT_MOT_STOP -= 0.02
+
+        # Now that the heading is within 3 deg after 3 seconds fix if the bot is still moving
+
+        self.calibration_max_accel = 100 # outrageous number to start loop
+        while abs(self.calibration_max_accel) > 0.5: # TODO: test if this is a good tolerance
+            # Fully stop the bot (sleep the chip), reset the max acceleration on IMU and 
+            self.drive_enable_publisher.publish(Bool(False))
+            time.sleep(0.5) # wait half a second for the bot to stop
+            # then set both motors to the values found above.
+            drive_msg = DriveCmd()
+            drive_msg.left_throttle = self.LEFT_MOT_STOP
+            drive_msg.right_throttle = self.RIGHT_MOT_STOP
+            self.drive_enable_publisher.publish(Bool(True))
+            self.drive_cmd_publisher.publish(drive_msg)
+
+            # If acceleration is fwd/back then adjust both motors
+            # equally. May need to go back to the heading correction step (later TODO)
+            if self.calibration_max_accel > 0.5: # TODO is this good
+                self.LEFT_MOT_STOP -= 0.01
+                self.RIGHT_MOT_STOP -= 0.01
+            elif self.calibration_max_accel < -0.5: # TODO is this good
+                self.LEFT_MOT_STOP += 0.01
+                self.RIGHT_MOT_STOP += 0.01
+
+        # once done have the zero values Calibrated
+        self.get_logger(f'Zeroes calibrated, offsets: Right: {self.RIGHT_MOT_STOP}, Left: {self.LEFT_MOT_STOP}')
+
+        # Now calibrate max fwd by setting both to max fwd for 2 sec measuring heading difference
+        # keep reducing the one side until it goes straight.
+        ang_error = 100
+        self.LEFT_MOT_FWD_MAX = 1.0
+        self.RIGHT_MOT_FWD_MAX = 1.0
+        while abs(ang_error) > 3:
+            # Stop bot and get starting angle
+            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot for a bit to get the heading
+            time.sleep(0.5)
+            start_ang = self.cur_heading
+            self.drive_enable_publisher.publish(Bool(True))
+            drive_msg.left_throttle = self.LEFT_MOT_FWD_MAX
+            drive_msg.right_throttle = self.RIGHT_MOT_FWD_MAX
+            self.drive_cmd_publisher.publish(drive_msg)
+            # Wait for 3 seconds then see which way it is turning.
+            time.sleep(3)
+            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot
+            ang_error = start_ang - self.cur_heading
+            # Correct in case angle went from a small positive to ~ 360 or opposite
+            if ang_error > 180:
+                ang_error -= 360
+            elif ang_error < -180:
+                ang_error += 360
+            # increase and decrease the wheel values until heading is not changing
+            if ang_error > 3.0:
+                if self.LEFT_MOT_FWD_MAX == 1.0 and self.RIGHT_MOT_FWD_MAX != 1.0:
+                    # odd case where more finely back increase right to keep one at 1.0
+                    self.RIGHT_MOT_FWD_MAX += 0.01
+                    # Prevents both going to zero or something weird
+                else:
+                    self.LEFT_MOT_FWD_MAX -= 0.02
+                
+            elif ang_error < -3.0:
+                if self.RIGHT_MOT_FWD_MAX == 1.0 and self.LEFT_MOT_FWD_MAX != 1.0:
+                    # odd case where more finely back increase right to keep one at 1.0
+                    self.LEFT_MOT_FWD_MAX += 0.01
+                    # Prevents both going to zero or something weird
+                else:
+                    self.RIGHT_MOT_FWD_MAX -= 0.02
+            
+            # Drive backwards a bit to not run out of space, doesn't have to be a line
+            self.drive_enable_publisher.publish(Bool(True))
+            drive_msg.left_throttle = self.LEFT_MOT_BACK_MAX
+            drive_msg.right_throttle = self.RIGHT_MOT_BACK_MAX
+            self.drive_cmd_publisher.publish(drive_msg)
+            time.sleep(3)
+            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot
+
+        self.get_logger(f'Max Fwd calibrated: Right: {self.RIGHT_MOT_FWD_MAX}, Left: {self.LEFT_MOT_FWD_MAX}')
+
+        # Finally calibrate the same for going backwards
+        ang_error = 100
+        self.LEFT_MOT_BACK_MAX = -1.0
+        self.RIGHT_MOT_BACK_MAX = -1.0
+        while abs(ang_error) > 3:
+            # Stop bot and get starting angle
+            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot for a bit to get the heading
+            time.sleep(0.5)
+            start_ang = self.cur_heading
+            self.drive_enable_publisher.publish(Bool(True))
+            drive_msg.left_throttle = self.LEFT_MOT_BACK_MAX
+            drive_msg.right_throttle = self.RIGHT_MOT_BACK_MAX
+            self.drive_cmd_publisher.publish(drive_msg)
+            # Wait for 3 seconds then see which way it is turning.
+            time.sleep(3)
+            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot
+            ang_error = start_ang - self.cur_heading
+            # Correct in case angle went from a small positive to ~ 360 or opposite
+            if ang_error > 180:
+                ang_error -= 360
+            elif ang_error < -180:
+                ang_error += 360
+            # increase and decrease the wheel values until heading is not changing
+            if ang_error < -3.0:
+                if self.LEFT_MOT_BACK_MAX == 1.0 and self.RIGHT_MOT_BACK_MAX != 1.0:
+                    # odd case where more finely back increase right to keep one at -1.0
+                    self.RIGHT_MOT_BACK_MAX -= 0.01
+                    # Prevents both going to zero or something weird
+                else:
+                    self.LEFT_MOT_BACK_MAX += 0.02
+                
+            elif ang_error > 3.0:
+                if self.RIGHT_MOT_BACK_MAX == 1.0 and self.LEFT_MOT_BACK_MAX != 1.0:
+                    # odd case where more finely back increase right to keep one at -1.0
+                    self.LEFT_MOT_BACK_MAX -= 0.01
+                    # Prevents both going to zero or something weird
+                else:
+                    self.RIGHT_MOT_BACK_MAX += 0.02
+            
+            # Drive forewards a bit to not run out of space, doesn't have to be a line (but should be now)
+            self.drive_enable_publisher.publish(Bool(True))
+            drive_msg.left_throttle = self.LEFT_MOT_FWD_MAX
+            drive_msg.right_throttle = self.RIGHT_MOT_FWD_MAX
+            self.drive_cmd_publisher.publish(drive_msg)
+            time.sleep(3)
+            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot
+
+        self.get_logger(f'Max Back calibrated: Right: {self.RIGHT_MOT_BACK_MAX}, Left: {self.LEFT_MOT_BACK_MAX}')
+
+        # Save calibrations to a motor_params.yaml file to be stored for future launches
+        motor_calibration_file = open('../../../launch/motor_params.yaml', 'w')
+        motor_calibration_file.write('/controller_node:\n  ros__parameters:\n    '
+                                     + f'LEFT_MOT_STOP: {self.LEFT_MOT_STOP}\n    '
+                                     + f'LEFT_MOT_FWD_MAX: {self.LEFT_MOT_FWD_MAX}\n    '
+                                     + f'LEFT_MOT_BACK_MAX: {self.LEFT_MOT_BACK_MAX}\n    '
+                                     + f'RIGHT_MOT_STOP: {self.RIGHT_MOT_STOP}\n    '
+                                     + f'RIGHT_MOT_FWD_MAX: {self.RIGHT_MOT_FWD_MAX}\n    '
+                                     + f'RIGHT_MOT_BACK_MAX: {self.RIGHT_MOT_BACK_MAX}\n')
+        motor_calibration_file.close()
+
+        self.mode = ControllerMode.IDLE
+        self.loop_timer.reset()
+
 
     def teleop_loop(self):
+
+        # TODO Use the max fwd/back and zero calibrated values
         # If driving straight then try to hold a heading, if turning then hold an angular velocity
 
         if self.target_ang_vel == 0.0:

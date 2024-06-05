@@ -30,6 +30,8 @@ def main(args=None):
     keyboard.add_hotkey('space', lambda: on_key_callback('space', teleop_publisher, enable_publisher))
     keyboard.add_hotkey('q', lambda: on_key_callback('q', teleop_publisher, enable_publisher))
 
+    keyboard.add_hotkey('c', lambda: on_key_callback('c', teleop_publisher, enable_publisher)) # calibrate, maybe a different script
+
     keyboard.wait()
 
 def on_key_callback(key, teleop_publisher, enable_publisher):
