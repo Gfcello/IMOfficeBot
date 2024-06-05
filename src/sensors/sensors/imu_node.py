@@ -282,19 +282,19 @@ class IMUNode(Node):
         y=0.0
         S=0.0
 
-        KFangleY = KFangleY + DT * (gyroRate - self.y_bias)
+        self.KFangleY = self.KFangleY + DT * (gyroRate - self.y_bias)
 
         self.YP_00 = self.YP_00 + ( - DT * (self.YP_10 + self.YP_01) + self.Q_angle * DT )
         self.YP_01 = self.YP_01 + ( - DT * self.YP_11 )
         self.YP_10 = self.YP_10 + ( - DT * self.YP_11 )
         self.YP_11 = self.YP_11 + ( + self.Q_gyro * DT )
 
-        y = accAngle - KFangleY
+        y = accAngle - self.KFangleY
         S = self.YP_00 + self.R_angle
         K_0 = self.YP_00 / S
         K_1 = self.YP_10 / S
 
-        KFangleY = KFangleY + ( K_0 * y )
+        self.KFangleY = self.KFangleY + ( K_0 * y )
         self.y_bias = self.y_bias + ( K_1 * y )
 
         self.YP_00 = self.YP_00 - ( K_0 * self.YP_00 )
@@ -302,26 +302,26 @@ class IMUNode(Node):
         self.YP_10 = self.YP_10 - ( K_1 * self.YP_00 )
         self.YP_11 = self.YP_11 - ( K_1 * self.YP_01 )
 
-        return KFangleY
+        return self.KFangleY
 
     def kalmanFilterX (self, accAngle, gyroRate, DT):
         x=0.0
         S=0.0
 
 
-        KFangleX = KFangleX + DT * (gyroRate - self.x_bias)
+        self.KFangleX = self.KFangleX + DT * (gyroRate - self.x_bias)
 
         self.XP_00 = self.XP_00 + ( - DT * (self.XP_10 + self.XP_01) + self.Q_angle * DT )
         self.XP_01 = self.XP_01 + ( - DT * self.XP_11 )
         self.XP_10 = self.XP_10 + ( - DT * self.XP_11 )
         self.XP_11 = self.XP_11 + ( + self.Q_gyro * DT )
 
-        x = accAngle - KFangleX
+        x = accAngle - self.KFangleX
         S = self.XP_00 + self.R_angle
         K_0 = self.XP_00 / S
         K_1 = self.XP_10 / S
 
-        KFangleX = KFangleX + ( K_0 * x )
+        self.KFangleX = self.KFangleX + ( K_0 * x )
         self.x_bias = self.x_bias + ( K_1 * x )
 
         self.XP_00 = self.XP_00 - ( K_0 * self.XP_00 )
@@ -329,7 +329,7 @@ class IMUNode(Node):
         self.XP_10 = self.XP_10 - ( K_1 * self.XP_00 )
         self.XP_11 = self.XP_11 - ( K_1 * self.XP_01 )
 
-        return KFangleX
+        return self.KFangleX
 
 
 def main(args=None):
