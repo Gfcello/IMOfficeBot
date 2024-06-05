@@ -1,9 +1,7 @@
 import rclpy
 from rclpy.node import Node
-# import sys
-# sys.path.append('./external_libraries/BerryIMUv3/')
 
-import external_libraries.IMU as IMU
+import IMU
 import datetime
 import math
 
