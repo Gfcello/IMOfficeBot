@@ -223,8 +223,8 @@ class IMUNode(Node):
             AccYangle += 90.0
 
         #Complementary filter used to combine the accelerometer and gyro values.
-        CFangleX=self.AA*(CFangleX+rate_gyr_x*LP) +(1 - self.AA) * AccXangle
-        CFangleY=self.AA*(CFangleY+rate_gyr_y*LP) +(1 - self.AA) * AccYangle
+        self.CFangleX=self.AA*(self.CFangleX+rate_gyr_x*LP) +(1 - self.AA) * AccXangle
+        self.CFangleY=self.AA*(self.CFangleY+rate_gyr_y*LP) +(1 - self.AA) * AccYangle
 
         #Kalman filter used to combine the accelerometer and gyro values.
         kalmanY = self.kalmanFilterY(AccYangle, rate_gyr_y,LP)
