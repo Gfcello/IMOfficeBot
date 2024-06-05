@@ -288,7 +288,7 @@ class ControllerNode(Node):
         self.get_logger().info(f'Max Back calibrated: Right: {self.RIGHT_MOT_BACK_MAX}, Left: {self.LEFT_MOT_BACK_MAX}')
 
         # Save calibrations to a motor_params.yaml file to be stored for future launches
-        motor_calibration_file = open('~/git/IMOfficeBot/launch/motor_params.yaml', 'w')
+        motor_calibration_file = open('/home/oscar1/git/IMOfficeBot/launch/motor_params.yaml', 'w')
         motor_calibration_file.write('/controller_node:\n  ros__parameters:\n    '
                                      + f'LEFT_MOT_STOP: {self.LEFT_MOT_STOP}\n    '
                                      + f'LEFT_MOT_FWD_MAX: {self.LEFT_MOT_FWD_MAX}\n    '
