@@ -184,7 +184,7 @@ class ControllerNode(Node):
                 self.RIGHT_MOT_STOP += 0.01
 
         # once done have the zero values Calibrated
-        self.get_logger(f'Zeroes calibrated, offsets: Right: {self.RIGHT_MOT_STOP}, Left: {self.LEFT_MOT_STOP}')
+        self.get_logger().info(f'Zeroes calibrated, offsets: Right: {self.RIGHT_MOT_STOP}, Left: {self.LEFT_MOT_STOP}')
 
         # Now calibrate max fwd by setting both to max fwd for 2 sec measuring heading difference
         # keep reducing the one side until it goes straight.
