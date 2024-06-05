@@ -18,8 +18,8 @@ class IMUNode(Node):
     G_GAIN = 0.070          # [deg/s/LSB]  If you change the dps for gyro, you need to update this value accordingly
     AA =  0.40              # Complementary filter constant
     MAG_LPF_FACTOR = 0.4    # Low pass filter constant magnetometer
-    ACC_LPF_FACTOR = 0.4    # Low pass filter constant for accelerometer
-    ACC_MEDIANTABLESIZE = 7         # Median filter table size for accelerometer. Higher = smoother but a longer delay
+    ACC_LPF_FACTOR = 0.5    # Low pass filter constant for accelerometer
+    ACC_MEDIANTABLESIZE = 2         # Median filter table size for accelerometer. Higher = smoother but a longer delay
     MAG_MEDIANTABLESIZE = 7         # Median filter table size for magnetometer. Higher = smoother but a longer delay
 
     # Calibration values (may want to move these to params later)
