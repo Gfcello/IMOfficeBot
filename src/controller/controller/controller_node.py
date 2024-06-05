@@ -10,6 +10,7 @@ import time
 class ControllerNode(Node):
     DEBUG = False
     FREQ = 100
+    calibration_max_accel = 0
 
     def __init__(self):
         super().__init__('controller_node')
