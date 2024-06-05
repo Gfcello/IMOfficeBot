@@ -134,12 +134,12 @@ class ControllerNode(Node):
             drive_msg.left_throttle = self.LEFT_MOT_STOP
             drive_msg.right_throttle = self.RIGHT_MOT_STOP
             self.drive_enable_publisher.publish(disable_msg) # Stop the bot for a bit to get the heading
-            time.sleep(0.5)
+            time.sleep(3.0)
             start_ang = self.cur_heading
             self.drive_enable_publisher.publish(enable_msg)
             self.drive_cmd_publisher.publish(drive_msg)
             # Wait for 3 seconds then see which way it is turning.
-            time.sleep(3)
+            time.sleep(3.0)
             self.drive_enable_publisher.publish(disable_msg) # Stop the bot
             self.get_logger().info(f'start_ang: {start_ang}, cur: {self.cur_heading}')
             ang_error = start_ang - self.cur_heading
@@ -161,15 +161,18 @@ class ControllerNode(Node):
         self.get_logger().info('Calibrating stop magnitude')
         self.calibration_max_accel = 100 # outrageous number to start loop
         while abs(self.calibration_max_accel) > 0.05: # TODO: test if this is a good tolerance
+            self.calibration_max_accel = 0.0 # reset max measured acceleration
             # Fully stop the bot (sleep the chip), reset the max acceleration on IMU and 
             self.drive_enable_publisher.publish(disable_msg)
-            time.sleep(0.5) # wait half a second for the bot to stop
+            time.sleep(3) # wait a few seconds for the bot to stop
             # then set both motors to the values found above.
             drive_msg = DriveCmd()
             drive_msg.left_throttle = self.LEFT_MOT_STOP
             drive_msg.right_throttle = self.RIGHT_MOT_STOP
             self.drive_enable_publisher.publish(enable_msg)
             self.drive_cmd_publisher.publish(drive_msg)
+            time.sleep(3) # wait for bot to maybe drive a bit
+            self.drive_enable_publisher.publish(disable_msg)
 
             # If acceleration is fwd/back then adjust both motors
             # equally. May need to go back to the heading correction step (later TODO)
