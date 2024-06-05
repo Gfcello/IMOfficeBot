@@ -35,6 +35,8 @@ class DrivingNode(Node):
         self.chip = Device(self.i2c_addr)
         self.chip.set_pwm_frequency(self.FREQ)
 
+        # start sleeping
+        self.sleep_chip()
         self.status_msg.status = NodeStatus.STATUS_IDLE
 
         self.get_logger().info('Driving Node Started')

@@ -138,8 +138,8 @@ class ControllerNode(Node):
             start_ang = self.cur_heading
             self.drive_enable_publisher.publish(enable_msg)
             self.drive_cmd_publisher.publish(drive_msg)
-            # Wait for 3 seconds then see which way it is turning.
-            time.sleep(3.0)
+            # Wait for 5 seconds then see which way it is turning.
+            time.sleep(5)
             self.drive_enable_publisher.publish(disable_msg) # Stop the bot
             self.get_logger().info(f'start_ang: {start_ang}, cur: {self.cur_heading}')
             ang_error = start_ang - self.cur_heading
@@ -171,7 +171,7 @@ class ControllerNode(Node):
             drive_msg.right_throttle = self.RIGHT_MOT_STOP
             self.drive_enable_publisher.publish(enable_msg)
             self.drive_cmd_publisher.publish(drive_msg)
-            time.sleep(3) # wait for bot to maybe drive a bit
+            time.sleep(5) # wait for bot to maybe drive a bit
             self.drive_enable_publisher.publish(disable_msg)
 
             # If acceleration is fwd/back then adjust both motors

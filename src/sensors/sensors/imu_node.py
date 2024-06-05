@@ -92,7 +92,7 @@ class IMUNode(Node):
             sys.exit()
         IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
 
-        timer_period = 1.0  # seconds
+        timer_period = 0.1  # seconds, 10Hz.
         self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
