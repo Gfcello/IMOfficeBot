@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
-import IMU
+from . import IMU
 import datetime
 import math
 
