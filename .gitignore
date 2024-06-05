@@ -10,6 +10,9 @@ build/
 install/
 log/
 
+# Prevent overwriting motor config file
+launch/motor_params.yaml
+
 # Compiled Java class files
 *.class
 
