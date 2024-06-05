@@ -111,7 +111,7 @@ class ControllerNode(Node):
         self.cur_heading = msg.heading
         self.cur_ang_vel = msg.ang_vel
         self.x_accel = msg.x_accel
-        if self.mode == ControllerMode.CALIBRATE:
+        if self.mode == ControllerMode.CALIBRATION:
             self.calibration_max_accel = max(self.calibration_max_accel, self.x_accel)
     
     def calibration_loop(self):
