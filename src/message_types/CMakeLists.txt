@@ -28,6 +28,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ControllerMode.msg"
   "msg/DriveCmd.msg"
+  "msg/ImuData.msg"
   "msg/NodeStatus.msg"
   "msg/SystemStatus.msg"
   "msg/TeleopCmd.msg"
