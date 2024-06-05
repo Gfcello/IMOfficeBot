@@ -123,19 +123,19 @@ class IMUNode(Node):
         ###############################################
         #### Apply low pass filter ####
         ###############################################
-        MAGx =  MAGx  * self.MAG_LPF_FACTOR + oldXMagRawValue*(1 - self.MAG_LPF_FACTOR)
-        MAGy =  MAGy  * self.MAG_LPF_FACTOR + oldYMagRawValue*(1 - self.MAG_LPF_FACTOR)
-        MAGz =  MAGz  * self.MAG_LPF_FACTOR + oldZMagRawValue*(1 - self.MAG_LPF_FACTOR)
-        ACCx =  ACCx  * self.ACC_LPF_FACTOR + oldXAccRawValue*(1 - self.ACC_LPF_FACTOR)
-        ACCy =  ACCy  * self.ACC_LPF_FACTOR + oldYAccRawValue*(1 - self.ACC_LPF_FACTOR)
-        ACCz =  ACCz  * self.ACC_LPF_FACTOR + oldZAccRawValue*(1 - self.ACC_LPF_FACTOR)
+        MAGx =  MAGx  * self.MAG_LPF_FACTOR + self.oldXMagRawValue*(1 - self.MAG_LPF_FACTOR)
+        MAGy =  MAGy  * self.MAG_LPF_FACTOR + self.oldYMagRawValue*(1 - self.MAG_LPF_FACTOR)
+        MAGz =  MAGz  * self.MAG_LPF_FACTOR + self.oldZMagRawValue*(1 - self.MAG_LPF_FACTOR)
+        ACCx =  ACCx  * self.ACC_LPF_FACTOR + self.oldXAccRawValue*(1 - self.ACC_LPF_FACTOR)
+        ACCy =  ACCy  * self.ACC_LPF_FACTOR + self.oldYAccRawValue*(1 - self.ACC_LPF_FACTOR)
+        ACCz =  ACCz  * self.ACC_LPF_FACTOR + self.oldZAccRawValue*(1 - self.ACC_LPF_FACTOR)
 
-        oldXMagRawValue = MAGx
-        oldYMagRawValue = MAGy
-        oldZMagRawValue = MAGz
-        oldXAccRawValue = ACCx
-        oldYAccRawValue = ACCy
-        oldZAccRawValue = ACCz
+        self.oldXMagRawValue = MAGx
+        self.oldYMagRawValue = MAGy
+        self.oldZMagRawValue = MAGz
+        self.oldXAccRawValue = ACCx
+        self.oldYAccRawValue = ACCy
+        self.oldZAccRawValue = ACCz
 
         #########################################
         #### Median filter for accelerometer ####
