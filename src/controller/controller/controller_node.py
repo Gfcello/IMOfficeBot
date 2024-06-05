@@ -122,19 +122,24 @@ class ControllerNode(Node):
         self.LEFT_MOT_STOP = 0.0
         self.RIGHT_MOT_STOP = 0.0
         ang_error = 100
+        # for simplicty define messages for enable/disable
+        enable_msg = Bool()
+        enable_msg.data = True
+        disable_msg = Bool()
+        disable_msg.data = False
         while abs(ang_error) > 3.0: # TODO: is 3 deg good for a tuning tol?
             # first calibrate stopped values by first setting both motors to 0.00
             drive_msg = DriveCmd()
             drive_msg.left_throttle = self.LEFT_MOT_STOP
             drive_msg.right_throttle = self.RIGHT_MOT_STOP
-            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot for a bit to get the heading
+            self.drive_enable_publisher.publish(disable_msg) # Stop the bot for a bit to get the heading
             time.sleep(0.5)
             start_ang = self.cur_heading
-            self.drive_enable_publisher.publish(Bool(True))
+            self.drive_enable_publisher.publish(enable_msg)
             self.drive_cmd_publisher.publish(drive_msg)
             # Wait for 3 seconds then see which way it is turning.
             time.sleep(3)
-            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot
+            self.drive_enable_publisher.publish(disable_msg) # Stop the bot
             ang_error = start_ang - self.cur_heading
             # Correct in case angle went from a small positive to ~ 360 or opposite
             if ang_error > 180:
@@ -154,13 +159,13 @@ class ControllerNode(Node):
         self.calibration_max_accel = 100 # outrageous number to start loop
         while abs(self.calibration_max_accel) > 0.5: # TODO: test if this is a good tolerance
             # Fully stop the bot (sleep the chip), reset the max acceleration on IMU and 
-            self.drive_enable_publisher.publish(Bool(False))
+            self.drive_enable_publisher.publish(disable_msg)
             time.sleep(0.5) # wait half a second for the bot to stop
             # then set both motors to the values found above.
             drive_msg = DriveCmd()
             drive_msg.left_throttle = self.LEFT_MOT_STOP
             drive_msg.right_throttle = self.RIGHT_MOT_STOP
-            self.drive_enable_publisher.publish(Bool(True))
+            self.drive_enable_publisher.publish(enable_msg)
             self.drive_cmd_publisher.publish(drive_msg)
 
             # If acceleration is fwd/back then adjust both motors
@@ -182,16 +187,16 @@ class ControllerNode(Node):
         self.RIGHT_MOT_FWD_MAX = 1.0
         while abs(ang_error) > 3:
             # Stop bot and get starting angle
-            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot for a bit to get the heading
+            self.drive_enable_publisher.publish(disable_msg) # Stop the bot for a bit to get the heading
             time.sleep(0.5)
             start_ang = self.cur_heading
-            self.drive_enable_publisher.publish(Bool(True))
+            self.drive_enable_publisher.publish(enable_msg)
             drive_msg.left_throttle = self.LEFT_MOT_FWD_MAX
             drive_msg.right_throttle = self.RIGHT_MOT_FWD_MAX
             self.drive_cmd_publisher.publish(drive_msg)
             # Wait for 3 seconds then see which way it is turning.
             time.sleep(3)
-            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot
+            self.drive_enable_publisher.publish(disable_msg) # Stop the bot
             ang_error = start_ang - self.cur_heading
             # Correct in case angle went from a small positive to ~ 360 or opposite
             if ang_error > 180:
@@ -216,12 +221,12 @@ class ControllerNode(Node):
                     self.RIGHT_MOT_FWD_MAX -= 0.02
             
             # Drive backwards a bit to not run out of space, doesn't have to be a line
-            self.drive_enable_publisher.publish(Bool(True))
+            self.drive_enable_publisher.publish(enable_msg)
             drive_msg.left_throttle = self.LEFT_MOT_BACK_MAX
             drive_msg.right_throttle = self.RIGHT_MOT_BACK_MAX
             self.drive_cmd_publisher.publish(drive_msg)
             time.sleep(3)
-            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot
+            self.drive_enable_publisher.publish(disable_msg) # Stop the bot
 
         self.get_logger(f'Max Fwd calibrated: Right: {self.RIGHT_MOT_FWD_MAX}, Left: {self.LEFT_MOT_FWD_MAX}')
 
@@ -231,16 +236,16 @@ class ControllerNode(Node):
         self.RIGHT_MOT_BACK_MAX = -1.0
         while abs(ang_error) > 3:
             # Stop bot and get starting angle
-            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot for a bit to get the heading
+            self.drive_enable_publisher.publish(disable_msg) # Stop the bot for a bit to get the heading
             time.sleep(0.5)
             start_ang = self.cur_heading
-            self.drive_enable_publisher.publish(Bool(True))
+            self.drive_enable_publisher.publish(enable_msg)
             drive_msg.left_throttle = self.LEFT_MOT_BACK_MAX
             drive_msg.right_throttle = self.RIGHT_MOT_BACK_MAX
             self.drive_cmd_publisher.publish(drive_msg)
             # Wait for 3 seconds then see which way it is turning.
             time.sleep(3)
-            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot
+            self.drive_enable_publisher.publish(disable_msg) # Stop the bot
             ang_error = start_ang - self.cur_heading
             # Correct in case angle went from a small positive to ~ 360 or opposite
             if ang_error > 180:
@@ -265,12 +270,12 @@ class ControllerNode(Node):
                     self.RIGHT_MOT_BACK_MAX += 0.02
             
             # Drive forewards a bit to not run out of space, doesn't have to be a line (but should be now)
-            self.drive_enable_publisher.publish(Bool(True))
+            self.drive_enable_publisher.publish(enable_msg)
             drive_msg.left_throttle = self.LEFT_MOT_FWD_MAX
             drive_msg.right_throttle = self.RIGHT_MOT_FWD_MAX
             self.drive_cmd_publisher.publish(drive_msg)
             time.sleep(3)
-            self.drive_enable_publisher.publish(Bool(False)) # Stop the bot
+            self.drive_enable_publisher.publish(disable_msg) # Stop the bot
 
         self.get_logger(f'Max Back calibrated: Right: {self.RIGHT_MOT_BACK_MAX}, Left: {self.LEFT_MOT_BACK_MAX}')
 
