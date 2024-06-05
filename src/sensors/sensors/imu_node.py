@@ -65,7 +65,7 @@ class IMUNode(Node):
     def __init__(self):
         super().__init__('imu_node')
         self.data_publisher = self.create_publisher(ImuData, 'imu_node/data', 10)
-        self.status_publisher = self.create_publisher(NodeStatus, 'bms_node/status', 10)
+        self.status_publisher = self.create_publisher(NodeStatus, 'imu_node/status', 10)
         self.status_msg = NodeStatus()
 
         self.init_time = datetime.datetime.now()
@@ -276,6 +276,7 @@ class IMUNode(Node):
         imu_msg = ImuData()
         imu_msg.heading = tiltCompensatedHeading
         imu_msg.ang_vel = rate_gyr_z
+        imu_msg.x_accel = accXnorm
         self.data_publisher.publish(imu_msg)
 
     def kalmanFilterY (self, accAngle, gyroRate, DT):
