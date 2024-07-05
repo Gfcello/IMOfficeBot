@@ -12,7 +12,15 @@ https://github.com/SteveMacenski/slam_toolbox
 
 https://github.com/ros-navigation/navigation2
 
-A setup process will be made later
+A setup process will be made later.
+
+Lidar library -> Publishes to /scan, has other options as services
+
+slam_toolbox -> listens to /scan and /tf and publishes /map, can save and load maps
+
+nav2 -> listens to /tf (map -> odom), /scan, and /map to do navigation and obstacle avoidance
+
+This Repo -> Broadcasts /tf, reads IMU, odometry, listens to nav and controls motors
 
 # Packages in this Repo
 ## Core
@@ -28,5 +36,25 @@ This is the package for system outputs like actuators, lights, etc.
 ## Message Types
 This package defines custom messages used by the different nodes.
 
-# File System Architecture
-Will put a mermaid diagram here once one is made
+# File System and library Architecture
+The nav2 and slam_toolbox libraries are installed separately while the IMOfficeBot Repo and the sllidar_ros library need to be built and sourced.
+```mermaid
+    flowchart TD
+    A[IM_Office_Bot Folder] --> B(sllidar_ros Library)
+    A[IM_Office_Bot Folder] --> C(IMOfficeBot Repo)
+    D(slam_toolbox Library)
+    E(nav2 Library)
+```
+# Data Transfer between libraries
+```mermaid
+    flowchart TD
+    A(sllidar_ros Library) --> |/scan topic laser scan| B(slam_toolbox Library)
+    A(sllidar_ros Library) --> |/scan topic laser scan| C(nav2 Library)
+    B(slam_toolbox Library) --> |/map generated map| C(nav2 Library)
+    C(nav2 Library) --> |navigation Commands| D(IMOfficeBot Repo)
+    D(IMOfficeBot Repo) --> |odometry/transforms| C
+    D(IMOfficeBot Repo) --> |odometry/transforms| B(slam_toolbox Library)
+```
+
+
+
