@@ -8,6 +8,7 @@ from message_types.msg import GpsCoords, NodeStatus
 
 # NOTES:
 # Mouse driver should be disabled to not have it click or move by accident:
+# Need to use x11 noy wayland for this to work (select xorg on login)
 # 1. Find device id using $ xinput -list
 # 2. Disable device driver $ xinput --disable <id>
 
@@ -15,6 +16,8 @@ from message_types.msg import GpsCoords, NodeStatus
 
 # Can find mouse USB data using ls /dev, appears as /dev/hidraw0 for first wired mouse
 # was able to CAT the data, but some characters not showing.
+
+# https://www.eecg.utoronto.ca/~jayar/ece241_08F/AudioVideoCores/ps2/ps2.html#mousedata
 
 
 class MouseNode(Node):
