@@ -1,10 +1,15 @@
-from pynput import mouse
+import struct
+file = open( "/dev/input/mice", "rb" )
 
-def on_move(x, y):
-    print('Pointer moved to {0}'.format(
-        (x, y)))
+def getMouseEvent():
+  buf = file.read(3)
+  button = ord( buf[0] )
+  bLeft = button & 0x1
+  bMiddle = ( button & 0x4 ) > 0
+  bRight = ( button & 0x2 ) > 0
+  x,y = struct.unpack( "bb", buf[1:] )
+  print ("L:%d, M: %d, R: %d, x: %d, y: %d\n" % (bLeft,bMiddle,bRight, x, y) )
 
-listener = mouse.Listener(
-    on_move=on_move)
-listener.start()
-
+while True:
+  getMouseEvent()
+file.close()
