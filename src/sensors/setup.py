@@ -21,6 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
                 'imu_node = sensors.imu_node:main',
+                'mouse_node = sensors.mouse_node:main',
+                'odom_node = sensors.odom_node:main'
              ],
     },
 )

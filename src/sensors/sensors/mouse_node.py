@@ -1,10 +1,9 @@
 import rclpy
 from rclpy.node import Node
 
-import io
-import serial
+import struct
 
-from message_types.msg import GpsCoords, NodeStatus
+from message_types.msg import MotionMsg, NodeStatus
 
 # NOTES:
 # Mouse driver should be disabled to not have it click or move by accident:
@@ -14,79 +13,67 @@ from message_types.msg import GpsCoords, NodeStatus
 
 # To re-enable device driver: $ xinput --enable <id>
 
-# Can find mouse USB data using ls /dev, appears as /dev/hidraw0 for first wired mouse
+# Can find mouse USB data using ls /dev, appears as /dev/input/mice for first wired mouse
 # was able to CAT the data, but some characters not showing.
 
 # https://www.eecg.utoronto.ca/~jayar/ece241_08F/AudioVideoCores/ps2/ps2.html#mousedata
 
 
 class MouseNode(Node):
+    PIX_PER_METER = 10000
+
+    right_motion = 0
+    fwd_motion = 0
     def __init__(self):
         super().__init__('mouse_node')
 
-        self.declare_parameter('mount_point', '/dev/hidraw0')
+        self.declare_parameter('mount_point', '/dev/input/mice')
         self.mount_point = self.get_parameter('mount_point').get_parameter_value().string_value
 
-        self.coordinate_publisher = self.create_publisher(GpsCoords, 'gps_node/gps_coords', 10)
-        
-        self.coord_msg = GpsCoords()
+        self.motion_publisher = self.create_publisher(MotionMsg, 'mouse_node/motion', 10)
+        self.motion_msg = MotionMsg()
 
-        self.status_publisher = self.create_publisher(NodeStatus, 'gps_node/status', 10)
+        self.status_publisher = self.create_publisher(NodeStatus, 'mouse_node/status', 10)
         self.status_msg = NodeStatus()
 
-        self.ser = serial.Serial(self.mount_point, 9600, timeout=5.0)
-        self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
+        self.input_file = open(self.mount_point, "rb")
 
-        self.last_timestamp = 0
-        self.spins_since_last_coords = 0
-
-        timer_period = 0.5  # seconds
+        publish_period = 0.5  # seconds
+        self.create_timer(publish_period, self.publish_callback)
+        timer_period = 0.01 # TODO, check if there is loss at 100Hz, update this
         self.create_timer(timer_period, self.timer_callback)
 
-    def timer_callback(self):
-        coord_msg_found = False
+    def publish_callback(self):
+            self.motion_msg.fwd = self.fwd_motion
+            self.motion_msg.right = self.right_motion
 
-        while self.ser.in_waiting > 0:  # While there are bytes in the input buffer
-            try:
-                line = self.sio.readline()
-                print(line)
-            except serial.SerialException as e:
-                self.get_logger().error('Mouse Device error: {}'.format(e))
+            # reset the motion since publish
+            self.fwd_motion = 0
+            self.right_motion = 0
 
-            
-
-            # self.get_logger().debug(f'Publishing msg recieved at: {gps_data.timestamp}')
-
-            self.coordinate_publisher.publish(self.coord_msg)
-            # Also publish gps data to radio to send to mothership
-            self.radio_data_publisher.publish(self.coord_msg)
+            self.motion_publisher.publish(self.motion_msg)
 
             self.status_msg.status = self.status_msg.STATUS_GOOD
             self.status_publisher.publish(self.status_msg)
-            self.last_timestamp = gps_data.timestamp
-            self.spins_since_last_coords = 0
+            # TODO check for mouse sensor status
 
-        # Have now read through each of the recieved messages
-        if not coord_msg_found:
-            # Check if number of spins without coords exceeds 3
-            self.spins_since_last_coords += 1
-            if self.spins_since_last_coords >= 5:
-                self.get_logger().warn(f'No Lat/Long in {self.spins_since_last_coords / 2} s')
-                # Check what status based on number of missed messages
-                if self.spins_since_last_coords >= 10:
-                    self.status_msg.status = self.status_msg.STATUS_ERROR
-                    self.status_publisher.publish(self.status_msg)
-                else:
-                    self.status_msg.status = self.status_msg.STATUS_WARN
-                    self.status_publisher.publish(self.status_msg)
-
+    def timer_callback(self):
+        # Read mouse and update the motion since last publish
+        buf = self.input_file.read(3)
+        # buttons = buf[0] # Currently not using the buttons as inputs
+        # bLeft = buttons & 0x1
+        # bMiddle = ( buttons & 0x4 ) > 0
+        # bRight = ( buttons & 0x2 ) > 0
+        x,y = struct.unpack( "bb", buf[1:] )
+        self.fwd_motion += x / self.PIX_PER_METER
+        self.right_motion += y / self.PIX_PER_METER
 
 def main(args=None):
     rclpy.init(args=args)
 
-    gps_node = GpsNode()
+    mouse_node = MouseNode()
 
-    rclpy.spin(gps_node)
+    rclpy.spin(mouse_node)
 
 
 if __name__ == '__main__':
