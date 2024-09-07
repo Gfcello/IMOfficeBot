@@ -20,7 +20,7 @@ from message_types.msg import MotionMsg, NodeStatus
 
 
 class MouseNode(Node):
-    PIX_PER_METER = 10000
+    PIX_PER_METER = 48500 # from calibration script
 
     right_motion = 0
     fwd_motion = 0

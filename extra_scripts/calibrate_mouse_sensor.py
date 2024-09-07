@@ -3,7 +3,8 @@ import time
 
 file = open( "/dev/input/mice", "rb" )
 
-x_dist = 0
+x_dist = 0.0
+y_dist = 0.0
 
 def getMouseEvent():
   global x_dist
@@ -15,7 +16,7 @@ def getMouseEvent():
   bRight = ( buttons & 0x2 ) > 0
   x,y = struct.unpack( "bb", buf[1:] )
   # print ("L:%d, M: %d, R: %d, x: %d, y: %d\n" % (bLeft,bMiddle,bRight, x, y) )
-  x_dist += x
+  return [x, y]
 
 def time_check():
   global start_time
@@ -26,10 +27,15 @@ print('Move mouse 10cm in the next 20 seconds')
 start_time = time.time()
 
 while not time_check():
-  getMouseEvent()
+  #getMouseEvent()
   time.sleep(0.01)
-  print('time passed')
+  [x, y] = getMouseEvent()
 
-print(f'x total: {x_dist}, Dots per meter: {x_dist*10}')
+  x_dist = x_dist + x
+  y_dist = y_dist + y
+  #print('time passed')
+
+print(f'x (right) total: {x_dist}, Dots per meter: {x_dist*10}')
+print(f'y (fwd) total: {y_dist}, dots per meter: {y_dist * 10}')
 
 file.close()
