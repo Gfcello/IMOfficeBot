@@ -8,6 +8,9 @@ from math import cos, sin, pi
 from message_types.msg import ImuData, MotionMsg, NodeStatus
 
 class OdomNode(Node):
+    # Cumulative positions (using IMU and mouse sensor motions)
+    x = 0.0
+    y = 0.0
     # Fuse IMU and mouse sensor to track and publish odometry
     def __init__(self):
         super().__init__('odom_node')
@@ -27,9 +30,13 @@ class OdomNode(Node):
 
 
     def imu_callback(self, msg):
-        pass
+        self.heading = msg.heading * (pi/180) # convert to radians
 
     def motion_callback(self, msg):
+        # Read message from mouse sensor node and publish odometry
+        self.x += msg.fwd * cos(self.heading) + msg.right * sin(self.heading) # X is initial forwards direction
+        self.y += -msg.fwd * sin(self.heading) + msg.right * cos(self.heading)
+
         fwd_vel = msg.fwd * 2 # in m/s
         right_vel = msg.right * 2 # in m/s
 
@@ -38,9 +45,12 @@ class OdomNode(Node):
         y_vel = fwd_vel * sin(self.heading * pi / 180) + right_vel * cos(self.heading * pi / 180)
 
         # positions
-        self.odom_msg.pose.pose.position.x/y/z
+        self.odom_msg.pose.pose.position.x = self.x
+        self.odom_msg.pose.pose.position.y = self.y
+        self.odom_msg.pose.pose.position.z = 0 # no flying
+        
         # orientation (in quaternion form)
-        self.odom_msg.pose.pose.orientation
+        # self.odom_msg.pose.pose.orientation
         # velocities
         self.odom_msg.twist.twist.linear.x = x_vel
         self.odom_msg.twist.twist.linear.y = y_vel

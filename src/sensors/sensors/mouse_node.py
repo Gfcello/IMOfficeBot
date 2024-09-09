@@ -65,8 +65,8 @@ class MouseNode(Node):
         # bMiddle = ( buttons & 0x4 ) > 0
         # bRight = ( buttons & 0x2 ) > 0
         x,y = struct.unpack( "bb", buf[1:] )
-        self.fwd_motion += x / self.PIX_PER_METER
-        self.right_motion += y / self.PIX_PER_METER
+        self.fwd_motion += y / self.PIX_PER_METER
+        self.right_motion += x / self.PIX_PER_METER
 
 def main(args=None):
     rclpy.init(args=args)
