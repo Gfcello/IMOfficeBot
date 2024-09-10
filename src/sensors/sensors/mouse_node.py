@@ -63,14 +63,15 @@ class MouseNode(Node):
         # Read mouse and update the motion since last publish
         # check if there is a new mouse imput
 
-        buf = self.input_file.read(3)
+        buf = self.input_file.read(3) # note this is non-blocking, so can return None
         # buttons = buf[0] # Currently not using the buttons as inputs
         # bLeft = buttons & 0x1
         # bMiddle = ( buttons & 0x4 ) > 0
         # bRight = ( buttons & 0x2 ) > 0
-        x,y = struct.unpack( "bb", buf[1:] )
-        self.fwd_motion += y / self.PIX_PER_METER
-        self.right_motion += x / self.PIX_PER_METER
+        if buf is not None:
+            x,y = struct.unpack( "bb", buf[1:] )
+            self.fwd_motion += y / self.PIX_PER_METER
+            self.right_motion += x / self.PIX_PER_METER
 
 def main(args=None):
     rclpy.init(args=args)
