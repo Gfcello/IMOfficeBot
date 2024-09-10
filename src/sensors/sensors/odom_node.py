@@ -48,17 +48,17 @@ class OdomNode(Node):
         # positions
         self.odom_msg.pose.pose.position.x = self.x
         self.odom_msg.pose.pose.position.y = self.y
-        self.odom_msg.pose.pose.position.z = 0 # no flying
+        self.odom_msg.pose.pose.position.z = 0.0 # no flying
         
         # orientation (in quaternion form)
         # self.odom_msg.pose.pose.orientation
         # velocities
         self.odom_msg.twist.twist.linear.x = x_vel
         self.odom_msg.twist.twist.linear.y = y_vel
-        self.odom_msg.twist.twist.linear.z = 0 # no flying allowed
+        self.odom_msg.twist.twist.linear.z = 0.0 # no flying allowed
 
-        self.odom_msg.twist.twist.angular.x = 0 # no rolling
-        self.odom_msg.twist.twist.angular.y = 0 # no pitching
+        self.odom_msg.twist.twist.angular.x = 0.0 # no rolling
+        self.odom_msg.twist.twist.angular.y = 0.0 # no pitching
         self.odom_msg.twist.twist.angular.y = ((self.heading - self.last_pub_heading) * 2) * pi / 180 # all yaw
 
         self.odom_publisher.publish(self.odom_msg)
