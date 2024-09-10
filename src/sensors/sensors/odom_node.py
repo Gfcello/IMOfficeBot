@@ -11,6 +11,7 @@ class OdomNode(Node):
     # Cumulative positions (using IMU and mouse sensor motions)
     x = 0.0
     y = 0.0
+    heading = 0.0
     # Fuse IMU and mouse sensor to track and publish odometry
     def __init__(self):
         super().__init__('odom_node')

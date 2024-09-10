@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
+import os
 import struct
 
 from message_types.msg import MotionMsg, NodeStatus
@@ -36,7 +37,8 @@ class MouseNode(Node):
         self.status_publisher = self.create_publisher(NodeStatus, 'mouse_node/status', 10)
         self.status_msg = NodeStatus()
 
-        self.input_file = open(self.mount_point, "rb")
+        self.input_file = open(self.mount_point, "rb", )
+        os.set_blocking(self.input_file, False) # should make reads non-blocking
 
         publish_period = 0.5  # seconds
         self.create_timer(publish_period, self.publish_callback)
@@ -44,21 +46,23 @@ class MouseNode(Node):
         self.create_timer(timer_period, self.timer_callback)
 
     def publish_callback(self):
-            self.motion_msg.fwd = self.fwd_motion
-            self.motion_msg.right = self.right_motion
+        self.motion_msg.fwd = self.fwd_motion
+        self.motion_msg.right = self.right_motion
 
-            # reset the motion since publish
-            self.fwd_motion = 0
-            self.right_motion = 0
+        # reset the motion since publish
+        self.fwd_motion = 0
+        self.right_motion = 0
 
-            self.motion_publisher.publish(self.motion_msg)
+        self.motion_publisher.publish(self.motion_msg)
 
-            self.status_msg.status = self.status_msg.STATUS_GOOD
-            self.status_publisher.publish(self.status_msg)
-            # TODO check for mouse sensor status
+        self.status_msg.status = self.status_msg.STATUS_GOOD
+        self.status_publisher.publish(self.status_msg)
+        # TODO check for mouse sensor status
 
     def timer_callback(self):
         # Read mouse and update the motion since last publish
+        # check if there is a new mouse imput
+
         buf = self.input_file.read(3)
         # buttons = buf[0] # Currently not using the buttons as inputs
         # bLeft = buttons & 0x1
