@@ -56,5 +56,12 @@ The nav2 and slam_toolbox libraries are installed separately while the IMOfficeB
     D(IMOfficeBot Repo) --> |odometry/transforms| B(slam_toolbox Library)
 ```
 
+# Commands
+Launch Lidar Driver
+ros2 launch sllidar_ros2 sllidar_a1_launch.py
 
+Launch Nav2 stack
+ros2 launch nav2_bringup navigation_launch.py
 
+Launch slam_toolbox
+ros2 launch slam_toolbox online_sync_launch.py
