@@ -12,6 +12,8 @@ class OdomNode(Node):
     x = 0.0
     y = 0.0
     heading = 0.0
+    # TODO look into this behaviour, want to not jump at start and not localize until IMU reading
+    last_pub_heading = 0.0 # Don't want to assume a jump from 0 to actual heading to start, so catch this
     # Fuse IMU and mouse sensor to track and publish odometry
     def __init__(self):
         super().__init__('odom_node')
@@ -32,6 +34,9 @@ class OdomNode(Node):
 
     def imu_callback(self, msg):
         self.heading = msg.heading * (pi/180) # convert to radians
+        # catch case of heading not yet recieved
+        if self.last_pub_heading == 0.0:
+            self.last_pub_heading = self.heading
 
     def motion_callback(self, msg):
         # Read message from mouse sensor node and publish odometry
