@@ -23,8 +23,8 @@ from message_types.msg import MotionMsg, NodeStatus
 class MouseNode(Node):
     PIX_PER_METER = 48500 # from calibration script
 
-    right_motion = 0
-    fwd_motion = 0
+    right_motion = 0.0
+    fwd_motion = 0.0
     def __init__(self):
         super().__init__('mouse_node')
 
@@ -46,12 +46,12 @@ class MouseNode(Node):
         self.create_timer(timer_period, self.timer_callback)
 
     def publish_callback(self):
-        self.motion_msg.fwd = self.fwd_motion
-        self.motion_msg.right = self.right_motion
+        self.motion_msg.fwd = float(self.fwd_motion)
+        self.motion_msg.right = float(self.right_motion)
 
         # reset the motion since publish
-        self.fwd_motion = 0
-        self.right_motion = 0
+        self.fwd_motion = 0.0
+        self.right_motion = 0.0
 
         self.motion_publisher.publish(self.motion_msg)
 
