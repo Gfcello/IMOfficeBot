@@ -38,7 +38,7 @@ class MouseNode(Node):
         self.status_msg = NodeStatus()
 
         self.input_file = open(self.mount_point, "rb", )
-        os.set_blocking(self.input_file, False) # should make reads non-blocking
+        os.set_blocking(self.input_file.fileno(), False) # should make reads non-blocking
 
         publish_period = 0.5  # seconds
         self.create_timer(publish_period, self.publish_callback)
