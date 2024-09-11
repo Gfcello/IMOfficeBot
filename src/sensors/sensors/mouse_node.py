@@ -40,7 +40,7 @@ class MouseNode(Node):
         self.input_file = open(self.mount_point, "rb", )
         os.set_blocking(self.input_file.fileno(), False) # should make reads non-blocking
 
-        publish_period = 0.5  # seconds
+        publish_period = 0.1  # seconds
         self.create_timer(publish_period, self.publish_callback)
         timer_period = 0.01 # TODO, check if there is loss at 100Hz, update this
         self.create_timer(timer_period, self.timer_callback)
