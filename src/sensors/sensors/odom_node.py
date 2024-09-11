@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
-from tf2_ros import TransformBroadcaster
+from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 
 from math import cos, sin, pi
 import numpy as np
@@ -43,7 +43,25 @@ class OdomNode(Node):
     def __init__(self):
         super().__init__('odom_node')
 
-        self.broadcaster = TransformBroadcaster(self)
+        self.odom_2_link_broadcaster = TransformBroadcaster(self)
+        self.link_2_laser_broadcaster = StaticTransformBroadcaster(self)
+
+        # TF from base link to laser is static, so define once
+        self.laser_tf_msg = TransformStamped()
+        self.laser_tf_msg.header.stamp = 0.00 # make it old so it is trusted
+        self.laser_tf_msg.header.frame_id = 'base_link'
+        self.laser_tf_msg.child_frame_id = 'base_laser'
+
+        # for now assuming laser is at the center of the bot
+        self.laser_tf_msg.transform.translation.x = 0.0
+        self.laser_tf_msg.transform.translation.y = 0.0
+        self.laser_tf_msg.transform.translation.z = 0.0
+
+        # orientation of straight forward
+        self.laser_tf_msg.transform.rotation.x = 0.0
+        self.laser_tf_msg.transform.rotation.y = 0.0
+        self.laser_tf_msg.transform.rotation.z = 0.0
+        self.laser_tf_msg.transform.rotation.w = 0.0
 
         self.status_publisher = self.create_publisher(NodeStatus, 'odom_node/status', 10)
         self.status_msg = NodeStatus()
@@ -88,7 +106,8 @@ class OdomNode(Node):
         tf_msg.transform.rotation.z = q[2]
         tf_msg.transform.rotation.w = q[3]
 
-        self.broadcaster.sendTransform(tf_msg)
+        self.odom_2_link_broadcaster.sendTransform(tf_msg)
+        self.link_2_laser_broadcaster.sendTransform(self.laser_tf_msg)
 
 def main(args=None):
     rclpy.init(args=args)
