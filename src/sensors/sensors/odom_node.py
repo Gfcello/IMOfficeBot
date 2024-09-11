@@ -49,7 +49,7 @@ class OdomNode(Node):
         # TF from base link to laser is static, so define once
         laser_tf_msg = TransformStamped()
         laser_tf_msg.header.stamp = self.get_clock().now().to_msg()
-        laser_tf_msg.header.frame_id = 'base_link'
+        laser_tf_msg.header.frame_id = 'base_footprint'
         laser_tf_msg.child_frame_id = 'laser' # What is desired by the scan visualizationtftf
 
         # for now assuming laser is at the center of the bot
