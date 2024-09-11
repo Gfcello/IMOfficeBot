@@ -50,7 +50,7 @@ class OdomNode(Node):
         laser_tf_msg = TransformStamped()
         laser_tf_msg.header.stamp = self.get_clock().now().to_msg()
         laser_tf_msg.header.frame_id = 'base_link'
-        laser_tf_msg.child_frame_id = 'base_laser'
+        laser_tf_msg.child_frame_id = 'laser' # What is desired by the scan visualizationtftf
 
         # for now assuming laser is at the center of the bot
         laser_tf_msg.transform.translation.x = 0.0
@@ -79,6 +79,7 @@ class OdomNode(Node):
         # Store current absolute heading from IMU
         self.heading = msg.heading * (pi/180) # convert to radians
 
+# TODO: decouple the mouse position data from the publishing of the tf
     def motion_callback(self, msg):
         # Read message from mouse sensor node and publish transform
         self.x += msg.fwd * cos(self.heading) + msg.right * sin(self.heading) # X is initial forwards direction
@@ -93,8 +94,8 @@ class OdomNode(Node):
 
         tf_msg = TransformStamped()
         tf_msg.header.stamp = self.get_clock().now().to_msg()
-        tf_msg.header.frame_id = 'odom_frame'
-        tf_msg.child_frame_id = 'base_frame'
+        tf_msg.header.frame_id = 'odom'
+        tf_msg.child_frame_id = 'base_footprint'
 
         tf_msg.transform.translation.x = self.x
         tf_msg.transform.translation.y = self.y
