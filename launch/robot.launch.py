@@ -17,12 +17,12 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-      Node(
-         package='controller',
-         executable='controller_node',
-         name='controller_node',
-         parameters=[config, motor_config]
-      ),
+      # Node(
+      #    package='controller',
+      #    executable='controller_node',
+      #    name='controller_node',
+      #    parameters=[config, motor_config]
+      # ),
       # Node(
       #    package='core',
       #    executable='mode_node',
@@ -48,9 +48,21 @@ def generate_launch_description():
          parameters=[config]
       ),
       Node(
-         package='outputs',
-         executable='driving_node',
-         name='driving_node',
+         package='sensors',
+         executable='mouse_node',
+         name='mouse_node',
          parameters=[config]
       ),
+      Node(
+         package='sensors',
+         executable='odom_node',
+         name='odom_node',
+         parameters=[config]
+      ),
+      # Node(
+      #    package='outputs',
+      #    executable='driving_node',
+      #    name='driving_node',
+      #    parameters=[config]
+      # ),
    ])
