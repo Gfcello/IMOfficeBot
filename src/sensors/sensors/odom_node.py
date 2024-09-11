@@ -48,7 +48,7 @@ class OdomNode(Node):
 
         # TF from base link to laser is static, so define once
         self.laser_tf_msg = TransformStamped()
-        self.laser_tf_msg.header.stamp = 0.00 # make it old so it is trusted
+        self.laser_tf_msg.header.stamp = self.get_clock().now().to_msg()
         self.laser_tf_msg.header.frame_id = 'base_link'
         self.laser_tf_msg.child_frame_id = 'base_laser'
 
