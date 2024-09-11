@@ -78,3 +78,5 @@ ros2 run nav2_map_server map_saver_cli -f \<map-name\>
 Launch Nav2 stack
 ros2 launch nav2_bringup navigation_launch.py
 
+Request a goal point from nav2: 
+ros2 topic pub /goal_pose geometry_msgs/PoseStamped "{header: {stamp: {sec: 0}, frame_id: 'map'}, pose: {position: {x: 0.2, y: 0.0, z: 0.0}, orientation: {w: 1.0}}}"
