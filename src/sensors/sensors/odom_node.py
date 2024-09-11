@@ -45,13 +45,12 @@ class OdomNode(Node):
 
         self.odom_2_link_broadcaster = TransformBroadcaster(self)
         self.link_2_laser_broadcaster = StaticTransformBroadcaster(self)
-        self.link_2_frame_broadcaster = StaticTransformBroadcaster(self)
 
         # TF from base link to laser is static, so define once
         laser_tf_msg = TransformStamped()
         laser_tf_msg.header.stamp = self.get_clock().now().to_msg()
         laser_tf_msg.header.frame_id = 'base_link'
-        laser_tf_msg.child_frame_id = 'laser' # What is desired by the scan visualizationtftf
+        laser_tf_msg.child_frame_id = 'laser' # What is desired by the scan visualization
 
         # for now assuming laser is at the center of the bot
         laser_tf_msg.transform.translation.x = 0.0
@@ -64,14 +63,6 @@ class OdomNode(Node):
         laser_tf_msg.transform.rotation.z = 0.0
         laser_tf_msg.transform.rotation.w = 1.0
         self.link_2_laser_broadcaster.sendTransform(laser_tf_msg) # only publish msg once as it is static
-
-        # add a static transform between base_link and base_footprint as slam_toolbox wants one and nav2 wants the other
-        link_2_frame_msg = laser_tf_msg
-        link_2_frame_msg.header.stamp = self.get_clock().now().to_msg()
-        link_2_frame_msg.header.frame_id = 'base_link'
-        link_2_frame_msg.child_frame_id = 'base_footprint' # What is desired by the scan visualizationtftf
-
-        self.link_2_frame_broadcaster.sendTransform(link_2_frame_msg) # only publish msg once as it is static
 
         self.status_publisher = self.create_publisher(NodeStatus, 'odom_node/status', 10)
         self.status_msg = NodeStatus()
@@ -104,7 +95,7 @@ class OdomNode(Node):
         tf_msg = TransformStamped()
         tf_msg.header.stamp = self.get_clock().now().to_msg()
         tf_msg.header.frame_id = 'odom'
-        tf_msg.child_frame_id = 'base_footprint'
+        tf_msg.child_frame_id = 'base_link'
 
         tf_msg.transform.translation.x = self.x
         tf_msg.transform.translation.y = self.y
