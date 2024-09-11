@@ -93,8 +93,8 @@ class OdomNode(Node):
 
         tf_msg = TransformStamped()
         tf_msg.header.stamp = self.get_clock().now().to_msg()
-        tf_msg.header.frame_id = 'odom'
-        tf_msg.child_frame_id = 'base_link'
+        tf_msg.header.frame_id = 'odom_frame'
+        tf_msg.child_frame_id = 'base_frame'
 
         tf_msg.transform.translation.x = self.x
         tf_msg.transform.translation.y = self.y
